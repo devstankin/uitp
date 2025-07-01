@@ -1,10 +1,18 @@
 from django.core.management.base import BaseCommand
-from assets.models import CustomEntity, CustomField
+from ...models import CustomEntity, CustomField
+from django.contrib.auth import get_user_model
 
 class Command(BaseCommand):
-    help = 'Check custom entities in database'
+    help = 'Check custom entities and ensure admin user exists'
 
     def handle(self, *args, **options):
+        User = get_user_model()
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@example.com', 'stankin2020')
+            self.stdout.write(self.style.SUCCESS('Суперпользователь admin создан'))
+        else:
+            self.stdout.write(self.style.WARNING('Суперпользователь admin уже существует'))
+
         entities = CustomEntity.objects.all()
         self.stdout.write(f"Found {entities.count()} custom entities:")
         
@@ -16,4 +24,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"      - {field.name} ({field.field_type})")
         
         if entities.count() == 0:
-            self.stdout.write(self.style.WARNING("No custom entities found in database")) 
+            self.stdout.write(self.style.WARNING("No custom entities found in database"))
+
+# Вызовем при запуске
+# -ensure_admin() 

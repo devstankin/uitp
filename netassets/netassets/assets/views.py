@@ -1,5 +1,5 @@
 from rest_framework import viewsets, filters
-from .models import NetworkDevice, Switch, Computer, Printer, Router, CustomEntity, CustomField, EntityRecord
+from .models import NetworkDevice, Switch, Computer, Printer, Router, CustomEntity, CustomField, EntityRecord, UserPermission, UserDashboardCard
 from .serializers import (
     NetworkDeviceSerializer, SwitchSerializer, ComputerSerializer, PrinterSerializer, RouterSerializer
 )
@@ -14,15 +14,17 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from simple_history.utils import update_change_reason
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from .forms import ComputerForm, PrinterForm, RouterForm, SwitchForm, NetworkDeviceForm, CustomEntityForm, CustomFieldForm, EntityRecordForm
 from django_filters.rest_framework import DjangoFilterBackend
+import json
+from django.contrib.auth.models import User
 
 class NetworkDeviceViewSet(viewsets.ModelViewSet):
     queryset = NetworkDevice.objects.all()
@@ -310,6 +312,7 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_view'))
 @login_required
 def computers_table(request):
     computers = Computer.objects.all()
@@ -319,6 +322,7 @@ def computers_table(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'printers', 'can_view'))
 @login_required
 def printers_table(request):
     printers = Printer.objects.all()
@@ -328,15 +332,16 @@ def printers_table(request):
         'custom_entities': custom_entities
     })
 
-@login_required
-def switches_table(request):
-    switches = Switch.objects.all()
-    custom_entities = CustomEntity.objects.all()
-    return render(request, 'switches_table.html', {
-        'switches': switches,
-        'custom_entities': custom_entities
-    })
+def has_permission(user, section, perm):
+    if user.is_superuser:
+        return True
+    try:
+        up = user.permissions.get(section=section)
+        return getattr(up, perm, False)
+    except UserPermission.DoesNotExist:
+        return False
 
+@user_passes_test(lambda u: has_permission(u, 'routers', 'can_view'))
 @login_required
 def routers_table(request):
     routers = Router.objects.all()
@@ -346,12 +351,23 @@ def routers_table(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'network_devices', 'can_view'))
 @login_required
 def network_devices_table(request):
     devices = NetworkDevice.objects.all()
     custom_entities = CustomEntity.objects.all()
     return render(request, 'network_devices_table.html', {
         'devices': devices,
+        'custom_entities': custom_entities
+    })
+
+@user_passes_test(lambda u: has_permission(u, 'switches', 'can_view'))
+@login_required
+def switches_table(request):
+    switches = Switch.objects.all()
+    custom_entities = CustomEntity.objects.all()
+    return render(request, 'switches_table.html', {
+        'switches': switches,
         'custom_entities': custom_entities
     })
 
@@ -419,6 +435,7 @@ def device_connectivity(request, pk):
         return Response({'error': 'Device not found'}, status=status.HTTP_404_NOT_FOUND)
 
 # Views для редактирования и создания записей
+@user_passes_test(lambda u: has_permission(u, 'network_devices', 'can_add'))
 @login_required
 def create_network_device(request):
     if request.method == 'POST':
@@ -441,6 +458,7 @@ def create_network_device(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'network_devices', 'can_edit'))
 @login_required
 def edit_network_device(request, pk):
     device = get_object_or_404(NetworkDevice, pk=pk)
@@ -465,6 +483,7 @@ def edit_network_device(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'network_devices', 'can_delete'))
 @login_required
 def delete_network_device(request, pk):
     device = get_object_or_404(NetworkDevice, pk=pk)
@@ -479,6 +498,7 @@ def delete_network_device(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'switches', 'can_add'))
 @login_required
 def create_switch(request):
     if request.method == 'POST':
@@ -501,6 +521,7 @@ def create_switch(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'switches', 'can_edit'))
 @login_required
 def edit_switch(request, pk):
     switch = get_object_or_404(Switch, pk=pk)
@@ -525,6 +546,7 @@ def edit_switch(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'switches', 'can_delete'))
 @login_required
 def delete_switch(request, pk):
     switch = get_object_or_404(Switch, pk=pk)
@@ -539,6 +561,7 @@ def delete_switch(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_add'))
 @login_required
 def create_computer(request):
     if request.method == 'POST':
@@ -561,6 +584,7 @@ def create_computer(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_edit'))
 @login_required
 def edit_computer(request, pk):
     computer = get_object_or_404(Computer, pk=pk)
@@ -585,6 +609,7 @@ def edit_computer(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_delete'))
 @login_required
 def delete_computer(request, pk):
     computer = get_object_or_404(Computer, pk=pk)
@@ -599,6 +624,7 @@ def delete_computer(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'printers', 'can_add'))
 @login_required
 def create_printer(request):
     if request.method == 'POST':
@@ -621,6 +647,7 @@ def create_printer(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'printers', 'can_edit'))
 @login_required
 def edit_printer(request, pk):
     printer = get_object_or_404(Printer, pk=pk)
@@ -645,6 +672,7 @@ def edit_printer(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'printers', 'can_delete'))
 @login_required
 def delete_printer(request, pk):
     printer = get_object_or_404(Printer, pk=pk)
@@ -659,6 +687,7 @@ def delete_printer(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'routers', 'can_add'))
 @login_required
 def create_router(request):
     if request.method == 'POST':
@@ -681,6 +710,7 @@ def create_router(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'routers', 'can_edit'))
 @login_required
 def edit_router(request, pk):
     router = get_object_or_404(Router, pk=pk)
@@ -705,6 +735,7 @@ def edit_router(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'routers', 'can_delete'))
 @login_required
 def delete_router(request, pk):
     router = get_object_or_404(Router, pk=pk)
@@ -719,106 +750,7 @@ def delete_router(request, pk):
         'custom_entities': custom_entities
     })
 
-@login_required
-def custom_entity_list(request):
-    if request.method == 'POST':
-        # Обработка создания новой сущности
-        name = request.POST.get('name')
-        if name:
-            try:
-                # Создаем slug из названия с поддержкой кириллицы
-                def create_slug(name):
-                    # Простая транслитерация кириллицы
-                    translit_map = {
-                        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
-                        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-                        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-                        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-                        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-                        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'YO',
-                        'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
-                        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
-                        'Ф': 'F', 'Х': 'H', 'Ц': 'TS', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SCH',
-                        'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA'
-                    }
-                    
-                    # Транслитерируем
-                    transliterated = ''
-                    for char in name:
-                        transliterated += translit_map.get(char, char)
-                    
-                    # Применяем slugify
-                    slug = slugify(transliterated)
-                    
-                    # Если slug пустой, добавляем суффикс
-                    if not slug:
-                        slug = 'entity'
-                    
-                    return slug
-                
-                slug = create_slug(name)
-                
-                # Проверяем уникальность slug
-                counter = 1
-                original_slug = slug
-                while CustomEntity.objects.filter(slug=slug).exists():
-                    slug = f"{original_slug}-{counter}"
-                    counter += 1
-                
-                entity = CustomEntity.objects.create(name=name, slug=slug)
-                messages.success(request, f'Сущность "{name}" успешно создана!')
-                return redirect('assets:custom_entity_detail', entity_slug=entity.slug)
-            except Exception as e:
-                messages.error(request, f'Ошибка при создании сущности: {e}')
-    
-    entities = CustomEntity.objects.all()
-    custom_entities = CustomEntity.objects.all()
-    return render(request, 'custom_entity_list.html', {
-        'entities': entities,
-        'custom_entities': custom_entities
-    })
-
-@login_required
-def custom_entity_detail(request, entity_slug):
-    entity = get_object_or_404(CustomEntity, slug=entity_slug)
-    
-    if request.method == 'POST':
-        # Обработка создания нового поля
-        name = request.POST.get('name')
-        field_type = request.POST.get('field_type')
-        is_required = request.POST.get('is_required') == 'on'
-        
-        if name and field_type:
-            try:
-                # Проверяем, что поле с таким именем еще не существует
-                if not entity.fields.filter(name=name).exists():
-                    CustomField.objects.create(
-                        entity=entity,
-                        name=name,
-                        field_type=field_type,
-                        is_required=is_required
-                    )
-                    messages.success(request, f'Поле "{name}" успешно добавлено!')
-                else:
-                    messages.error(request, f'Поле с именем "{name}" уже существует!')
-            except Exception as e:
-                messages.error(request, f'Ошибка при создании поля: {e}')
-        else:
-            messages.error(request, 'Пожалуйста, заполните все обязательные поля!')
-    
-    records = entity.records.all()
-    custom_entities = CustomEntity.objects.all()
-    
-    # Добавляем типы полей для формы
-    field_types = CustomField.FIELD_TYPE_CHOICES
-    
-    return render(request, 'custom_entity_detail.html', {
-        'entity': entity,
-        'records': records,
-        'custom_entities': custom_entities,
-        'field_types': field_types
-    })
-
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_add'))
 @login_required
 def create_custom_entity(request):
     if request.method == 'POST':
@@ -841,6 +773,7 @@ def create_custom_entity(request):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_edit'))
 @login_required
 def edit_custom_entity(request, pk):
     entity = get_object_or_404(CustomEntity, pk=pk)
@@ -865,6 +798,7 @@ def edit_custom_entity(request, pk):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_delete'))
 @login_required
 def delete_custom_entity(request, pk):
     entity = get_object_or_404(CustomEntity, pk=pk)
@@ -893,6 +827,7 @@ def entity_record_list(request, entity_slug):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_add'))
 @login_required
 def create_entity_record(request, entity_slug):
     entity = get_object_or_404(CustomEntity, slug=entity_slug)
@@ -930,6 +865,7 @@ def create_entity_record(request, entity_slug):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_edit'))
 @login_required
 def edit_entity_record(request, entity_slug, record_id):
     entity = get_object_or_404(CustomEntity, slug=entity_slug)
@@ -964,6 +900,7 @@ def edit_entity_record(request, entity_slug, record_id):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_delete'))
 @login_required
 def delete_entity_record(request, entity_slug, record_id):
     entity = get_object_or_404(CustomEntity, slug=entity_slug)
@@ -981,6 +918,7 @@ def delete_entity_record(request, entity_slug, record_id):
         'custom_entities': custom_entities
     })
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_export'))
 @login_required
 def export_csv(request, model_name):
     model_map = {
@@ -1020,6 +958,7 @@ def export_csv(request, model_name):
     
     return response
 
+@user_passes_test(lambda u: has_permission(u, 'computers', 'can_import'))
 @login_required
 def import_csv(request, model_name):
     if request.method != 'POST':
@@ -1100,6 +1039,7 @@ def import_csv(request, model_name):
     except Exception as e:
         return JsonResponse({'error': f'Ошибка обработки файла: {str(e)}'}, status=500)
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_export'))
 @login_required
 def export_entity_csv(request, entity_slug):
     """Экспорт записей пользовательской сущности в CSV"""
@@ -1129,6 +1069,7 @@ def export_entity_csv(request, entity_slug):
     
     return response
 
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_import'))
 @login_required
 def import_entity_csv(request, entity_slug):
     """Импорт записей пользовательской сущности из CSV"""
@@ -1203,4 +1144,100 @@ def import_entity_csv(request, entity_slug):
         return JsonResponse(result)
         
     except Exception as e:
-        return JsonResponse({'error': f'Ошибка при обработке файла: {str(e)}'}, status=500) 
+        return JsonResponse({'error': f'Ошибка при обработке файла: {str(e)}'}, status=500)
+
+@login_required
+def dashboard_cards_view(request):
+    cards = UserDashboardCard.objects.filter(user=request.user, visible=True).order_by('order')
+    data = [
+        {
+            'id': card.id,
+            'title': card.title,
+            'url': card.url,
+            'icon': card.icon,
+            'order': card.order,
+            'is_custom': card.is_custom,
+        }
+        for card in cards
+    ]
+    return JsonResponse({'cards': data})
+
+@login_required
+@require_POST
+def add_dashboard_card(request):
+    data = json.loads(request.body)
+    card = UserDashboardCard.objects.create(
+        user=request.user,
+        title=data.get('title', ''),
+        url=data.get('url', ''),
+        icon=data.get('icon', 'fas fa-link'),
+        order=data.get('order', 0),
+        is_custom=True,
+        visible=True
+    )
+    return JsonResponse({'success': True, 'card_id': card.id})
+
+@login_required
+@require_POST
+def update_dashboard_card(request, card_id):
+    data = json.loads(request.body)
+    try:
+        card = UserDashboardCard.objects.get(id=card_id, user=request.user)
+        card.title = data.get('title', card.title)
+        card.url = data.get('url', card.url)
+        card.icon = data.get('icon', card.icon)
+        card.order = data.get('order', card.order)
+        card.visible = data.get('visible', card.visible)
+        card.save()
+        return JsonResponse({'success': True})
+    except UserDashboardCard.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Card not found'}, status=404)
+
+@login_required
+@require_POST
+def delete_dashboard_card(request, card_id):
+    try:
+        card = UserDashboardCard.objects.get(id=card_id, user=request.user)
+        card.delete()
+        return JsonResponse({'success': True})
+    except UserDashboardCard.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Card not found'}, status=404)
+
+@user_passes_test(lambda u: u.is_superuser)
+@login_required
+def user_management(request):
+    users = User.objects.all().select_related('profile').prefetch_related('permissions')
+    sections = [s[0] for s in UserPermission.SECTION_CHOICES]
+    section_labels = dict(UserPermission.SECTION_CHOICES)
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        section = request.POST.get('section')
+        perm_type = request.POST.get('perm_type')
+        value = request.POST.get('value') == 'on'
+        user = User.objects.get(id=user_id)
+        perm, created = UserPermission.objects.get_or_create(user=user, section=section)
+        setattr(perm, perm_type, value)
+        perm.save()
+    users = User.objects.all().prefetch_related('permissions')
+    return render(request, 'user_management.html', {
+        'users': users,
+        'sections': sections,
+        'section_labels': section_labels,
+        'perm_types': ['can_view', 'can_add', 'can_edit', 'can_delete', 'can_export', 'can_import'],
+    })
+
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_view'))
+@login_required
+def custom_entity_list(request):
+    custom_entities = CustomEntity.objects.all()
+    return render(request, 'custom_entity_list.html', {
+        'custom_entities': custom_entities
+    })
+
+@user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_view'))
+@login_required
+def custom_entity_detail(request, entity_slug):
+    entity = get_object_or_404(CustomEntity, slug=entity_slug)
+    return render(request, 'custom_entity_detail.html', {
+        'entity': entity
+    }) 

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Управление пользователями{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Управление пользователями и правами</h2>
+    <table class="table table-bordered table-hover mt-4">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                {% for section in sections %}
+                    <th>{{ section_labels[section] }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th></th>
+                {% for section in sections %}
+                    <th>
+                        <div class="d-flex flex-column">
+                            <span class="small">Просмотр</span>
+                            <span class="small">Добавление</span>
+                            <span class="small">Редактирование</span>
+                            <span class="small">Удаление</span>
+                            <span class="small">Экспорт</span>
+                            <span class="small">Импорт</span>
+                        </div>
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}{% if user.is_superuser %} <span class="badge bg-primary">Админ</span>{% endif %}</td>
+                {% for section in sections %}
+                <td>
+                    <form method="post" class="d-flex flex-column align-items-center">
+                        {% csrf_token %}
+                        {% for perm_type in perm_types %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="section" value="{{ section }}">
+                        <input type="hidden" name="perm_type" value="{{ perm_type }}">
+                        <div class="form-check form-switch mb-1">
+                            <input class="form-check-input" type="checkbox" name="value" value="on" onchange="this.form.submit()"
+                                {% if user.permissions.all|get_section_perm:section|get_perm:perm_type %}checked{% endif %}
+                                {% if user.is_superuser %}disabled{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </form>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_filters %}
+{% comment %}
+Фильтры для шаблона:
+- get_section_perm: получить объект UserPermission по section
+- get_perm: получить конкретное право по perm_type
+{% endcomment %}
+{% endblock %}
+
+{% comment %}
+В base.html или в этом шаблоне нужно добавить фильтры:
+- get_section_perm
+- get_perm
+{% endcomment %} 

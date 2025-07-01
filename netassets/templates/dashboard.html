@@ -104,65 +104,141 @@
 </div>
 
 <!-- Быстрый доступ -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Быстрый доступ
-                </h5>
+<div class="row" id="dashboard-cards-row">
+    <!-- Карточки будут добавляться динамически через JS -->
+</div>
+<div class="mb-3">
+    <button class="btn btn-outline-primary" id="addCardBtn"><i class="fas fa-plus"></i> Добавить карточку</button>
+</div>
+
+<!-- Модальное окно для добавления карточки -->
+<div class="modal fade" id="addCardModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить карточку</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'assets:computers_table' %}" class="btn btn-outline-primary w-100 p-3">
-                            <i class="fas fa-desktop fa-2x mb-2"></i>
-                            <br>
-                            <strong>Компьютеры</strong>
-                            <br>
-                            <small class="text-muted">Управление компьютерами</small>
-                        </a>
+            <div class="modal-body">
+                <form id="addCardForm">
+                    <div class="mb-3">
+                        <label for="cardTitle" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="cardTitle" required>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'assets:printers_table' %}" class="btn btn-outline-success w-100 p-3">
-                            <i class="fas fa-print fa-2x mb-2"></i>
-                            <br>
-                            <strong>Принтеры</strong>
-                            <br>
-                            <small class="text-muted">Управление принтерами</small>
-                        </a>
+                    <div class="mb-3">
+                        <label for="cardUrl" class="form-label">URL</label>
+                        <input type="text" class="form-control" id="cardUrl" required>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'assets:switches_table' %}" class="btn btn-outline-info w-100 p-3">
-                            <i class="fas fa-hdd fa-2x mb-2"></i>
-                            <br>
-                            <strong>Коммутаторы</strong>
-                            <br>
-                            <small class="text-muted">Управление коммутаторами</small>
-                        </a>
+                    <div class="mb-3">
+                        <label for="cardIcon" class="form-label">Иконка (FontAwesome)</label>
+                        <input type="text" class="form-control" id="cardIcon" value="fas fa-link">
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'assets:routers_table' %}" class="btn btn-outline-warning w-100 p-3">
-                            <i class="fas fa-wifi fa-2x mb-2"></i>
-                            <br>
-                            <strong>Маршрутизаторы</strong>
-                            <br>
-                            <small class="text-muted">Управление маршрутизаторами</small>
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'assets:network_devices_table' %}" class="btn btn-outline-secondary w-100 p-3">
-                            <i class="fas fa-server fa-2x mb-2"></i>
-                            <br>
-                            <strong>Сетевые устройства</strong>
-                            <br>
-                            <small class="text-muted">Управление сетевыми устройствами</small>
-                        </a>
-                    </div>
-                </div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function renderDashboardCards(cards) {
+    const row = document.getElementById('dashboard-cards-row');
+    row.innerHTML = '';
+    cards.forEach(card => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4 mb-3 dashboard-card-col';
+        col.setAttribute('data-card-id', card.id);
+        col.innerHTML = `
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                    <i class="${card.icon} fa-2x mb-2"></i><br>
+                    <strong>${card.title}</strong><br>
+                    <a href="${card.url}" class="stretched-link" target="_blank"></a>
+                </div>
+                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-card-btn" title="Удалить">&times;</button>
+            </div>
+        `;
+        row.appendChild(col);
+    });
+    // Drag & drop
+    enableCardDragAndDrop();
+    // Удаление карточки
+    document.querySelectorAll('.remove-card-btn').forEach(btn => {
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            const cardId = btn.closest('.dashboard-card-col').getAttribute('data-card-id');
+            fetch(`/dashboard/cards/${cardId}/delete/`, {method: 'POST', headers: {'X-CSRFToken': getCSRFToken()}})
+                .then(() => loadDashboardCards());
+        };
+    });
+}
+function loadDashboardCards() {
+    fetch('/dashboard/cards/')
+        .then(r => r.json())
+        .then(data => renderDashboardCards(data.cards));
+}
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+// Drag & drop
+function enableCardDragAndDrop() {
+    const cols = document.querySelectorAll('.dashboard-card-col');
+    cols.forEach(col => {
+        col.draggable = true;
+        col.ondragstart = e => {
+            e.dataTransfer.setData('text/plain', col.getAttribute('data-card-id'));
+        };
+        col.ondragover = e => e.preventDefault();
+        col.ondrop = e => {
+            e.preventDefault();
+            const fromId = e.dataTransfer.getData('text/plain');
+            const toId = col.getAttribute('data-card-id');
+            if (fromId !== toId) {
+                swapCardOrder(fromId, toId);
+            }
+        };
+    });
+}
+function swapCardOrder(fromId, toId) {
+    const row = document.getElementById('dashboard-cards-row');
+    const cards = Array.from(row.children);
+    const fromIdx = cards.findIndex(c => c.getAttribute('data-card-id') === fromId);
+    const toIdx = cards.findIndex(c => c.getAttribute('data-card-id') === toId);
+    if (fromIdx > -1 && toIdx > -1) {
+        row.insertBefore(cards[fromIdx], cards[toIdx]);
+        // Сохраняем новый порядок
+        const newOrder = Array.from(row.children).map((c, i) => ({id: c.getAttribute('data-card-id'), order: i}));
+        newOrder.forEach(card => {
+            fetch(`/dashboard/cards/${card.id}/update/`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken()},
+                body: JSON.stringify({order: card.order})
+            });
+        });
+    }
+}
+document.getElementById('addCardBtn').onclick = function() {
+    new bootstrap.Modal(document.getElementById('addCardModal')).show();
+};
+document.getElementById('addCardForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/dashboard/cards/add/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken()},
+        body: JSON.stringify({
+            title: document.getElementById('cardTitle').value,
+            url: document.getElementById('cardUrl').value,
+            icon: document.getElementById('cardIcon').value
+        })
+    }).then(() => {
+        loadDashboardCards();
+        bootstrap.Modal.getInstance(document.getElementById('addCardModal')).hide();
+        document.getElementById('addCardForm').reset();
+    });
+};
+document.addEventListener('DOMContentLoaded', loadDashboardCards);
+</script>
 {% endblock %} 

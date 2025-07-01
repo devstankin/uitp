@@ -9,17 +9,23 @@
         Принтеры
     </h1>
     <div class="btn-toolbar mb-2 mb-md-0">
+        {% if user_perms.printers.can_export %}
         <div class="btn-group me-2">
             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportData()">
                 <i class="fas fa-download me-1"></i> Экспорт CSV
             </button>
         </div>
+        {% endif %}
+        {% if user_perms.printers.can_add %}
         <a href="{% url 'assets:create_printer' %}" class="btn btn-sm btn-success me-2">
             <i class="fas fa-plus me-1"></i> Добавить
         </a>
+        {% endif %}
+        {% if user_perms.printers.can_import %}
         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="fas fa-upload me-1"></i> Импорт
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -99,13 +105,17 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
+                                {% if user_perms.printers.can_edit %}
                                 <a href="{% url 'assets:edit_printer' printer.id %}" class="btn btn-outline-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                {% endif %}
+                                {% if user_perms.printers.can_delete %}
                                 <a href="{% url 'assets:delete_printer' printer.id %}" class="btn btn-outline-danger" 
                                    onclick="return confirm('Вы уверены, что хотите удалить этот принтер?')">
                                     <i class="fas fa-trash"></i>
                                 </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

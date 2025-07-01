@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Установка зависимостей напрямую
-RUN pip install --no-cache-dir django psycopg2-binary djangorestframework django-auth-ldap django-cors-headers django-simple-history pandas
+RUN pip install --no-cache-dir django psycopg2-binary djangorestframework django-auth-ldap django-cors-headers django-simple-history pandas django-filter
 
 # Копирование кода приложения
 COPY . .

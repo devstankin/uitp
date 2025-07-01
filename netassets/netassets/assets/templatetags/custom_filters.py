@@ -16,3 +16,16 @@ def get_item(dictionary, key):
     
     # Если это не словарь, возвращаем пустую строку
     return '' 
+
+@register.filter
+def get_section_perm(permissions, section):
+    for perm in permissions:
+        if perm.section == section:
+            return perm
+    return None
+
+@register.filter
+def get_perm(perm, perm_type):
+    if perm is None:
+        return False
+    return getattr(perm, perm_type, False) 

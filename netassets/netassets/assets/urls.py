@@ -55,4 +55,13 @@ urlpatterns = [
     path('import/<str:model_name>/', views.import_csv, name='import_csv'),
     path('e/<slug:entity_slug>/export/', views.export_entity_csv, name='export_entity_csv'),
     path('e/<slug:entity_slug>/import/', views.import_entity_csv, name='import_entity_csv'),
+
+    # API для карточек быстрого доступа
+    path('dashboard/cards/', views.dashboard_cards_view, name='dashboard_cards_view'),
+    path('dashboard/cards/add/', views.add_dashboard_card, name='add_dashboard_card'),
+    path('dashboard/cards/<int:card_id>/update/', views.update_dashboard_card, name='update_dashboard_card'),
+    path('dashboard/cards/<int:card_id>/delete/', views.delete_dashboard_card, name='delete_dashboard_card'),
+
+    # User Management
+    path('admin/user-management/', views.user_management, name='user_management'),
 ] 

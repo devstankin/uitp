@@ -45,6 +45,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'netassets.assets.context_processors.custom_entities_processor',
+                'netassets.assets.context_processors.user_permissions',
             ],
         },
     },

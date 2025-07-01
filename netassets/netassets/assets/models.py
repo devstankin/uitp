@@ -5,6 +5,7 @@ from .validators import (
     validate_inventory_number, validate_serial_number, validate_barcode,
     validate_vlan, validate_port
 )
+from django.contrib.auth.models import User
 
 class NetworkDevice(models.Model):
     NETWORK_TYPE_CHOICES = [
@@ -247,4 +248,50 @@ class EntityRecord(models.Model):
         verbose_name_plural = 'Записи сущностей'
 
     def __str__(self):
-        return f"Запись {self.id} для {self.entity.name}" 
+        return f"Запись {self.id} для {self.entity.name}"
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    # Можно добавить дополнительные поля профиля
+
+    def __str__(self):
+        return f"Профиль {self.user.username}"
+
+class UserPermission(models.Model):
+    SECTION_CHOICES = [
+        ('computers', 'Компьютеры'),
+        ('printers', 'Принтеры'),
+        ('routers', 'Маршрутизаторы'),
+        ('switches', 'Коммутаторы'),
+        ('network_devices', 'Сетевые устройства'),
+        ('custom_entities', 'Пользовательские сущности'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='permissions')
+    section = models.CharField(max_length=32, choices=SECTION_CHOICES)
+    can_view = models.BooleanField(default=True)
+    can_add = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    can_export = models.BooleanField(default=False)
+    can_import = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'section')
+
+    def __str__(self):
+        return f"Права {self.user.username} на {self.get_section_display()}"
+
+class UserDashboardCard(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dashboard_cards')
+    title = models.CharField(max_length=128)
+    url = models.CharField(max_length=256)
+    icon = models.CharField(max_length=64, default='fas fa-link')
+    order = models.PositiveIntegerField(default=0)
+    is_custom = models.BooleanField(default=False)
+    visible = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Карточка {self.title} для {self.user.username}" 
