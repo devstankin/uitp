@@ -57,28 +57,20 @@ class NetworkDeviceViewSet(viewsets.ModelViewSet):
     def export_data(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.data:
-            return Response({'error': 'Нет данных для экспорта'}, status=404)
-        try:
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment; filename=network_devices.csv'
-            
-            # Создаем CSV writer с правильными настройками
-            writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
-            
-            # Записываем заголовки
-            if serializer.data:
-                headers = list(serializer.data[0].keys())
-                writer.writerow(headers)
-                
-                # Записываем данные
-                for item in serializer.data:
-                    row = [str(item.get(header, '')) for header in headers]
-                    writer.writerow(row)
-            
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=network_devices.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
             return response
-        except Exception as e:
-            return Response({'error': f'Ошибка при экспорте: {str(e)}'}, status=500)
+        else:
+            fields = [field.name for field in NetworkDevice._meta.fields]
+            writer.writerow(fields)
+            return response
 
 class SwitchViewSet(viewsets.ModelViewSet):
     queryset = Switch.objects.all()
@@ -114,28 +106,20 @@ class SwitchViewSet(viewsets.ModelViewSet):
     def export_data(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.data:
-            return Response({'error': 'Нет данных для экспорта'}, status=404)
-        try:
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment; filename=switches.csv'
-            
-            # Создаем CSV writer с правильными настройками
-            writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
-            
-            # Записываем заголовки
-            if serializer.data:
-                headers = list(serializer.data[0].keys())
-                writer.writerow(headers)
-                
-                # Записываем данные
-                for item in serializer.data:
-                    row = [str(item.get(header, '')) for header in headers]
-                    writer.writerow(row)
-            
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=switches.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
             return response
-        except Exception as e:
-            return Response({'error': f'Ошибка при экспорте: {str(e)}'}, status=500)
+        else:
+            fields = [field.name for field in Switch._meta.fields]
+            writer.writerow(fields)
+            return response
 
 class ComputerViewSet(viewsets.ModelViewSet):
     queryset = Computer.objects.all()
@@ -171,28 +155,20 @@ class ComputerViewSet(viewsets.ModelViewSet):
     def export_data(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.data:
-            return Response({'error': 'Нет данных для экспорта'}, status=404)
-        try:
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment; filename=computers.csv'
-            
-            # Создаем CSV writer с правильными настройками
-            writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
-            
-            # Записываем заголовки
-            if serializer.data:
-                headers = list(serializer.data[0].keys())
-                writer.writerow(headers)
-                
-                # Записываем данные
-                for item in serializer.data:
-                    row = [str(item.get(header, '')) for header in headers]
-                    writer.writerow(row)
-            
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=computers.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
             return response
-        except Exception as e:
-            return Response({'error': f'Ошибка при экспорте: {str(e)}'}, status=500)
+        else:
+            fields = [field.name for field in Computer._meta.fields]
+            writer.writerow(fields)
+            return response
 
 class PrinterViewSet(viewsets.ModelViewSet):
     queryset = Printer.objects.all()
@@ -228,28 +204,20 @@ class PrinterViewSet(viewsets.ModelViewSet):
     def export_data(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.data:
-            return Response({'error': 'Нет данных для экспорта'}, status=404)
-        try:
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment; filename=printers.csv'
-            
-            # Создаем CSV writer с правильными настройками
-            writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
-            
-            # Записываем заголовки
-            if serializer.data:
-                headers = list(serializer.data[0].keys())
-                writer.writerow(headers)
-                
-                # Записываем данные
-                for item in serializer.data:
-                    row = [str(item.get(header, '')) for header in headers]
-                    writer.writerow(row)
-            
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=printers.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
             return response
-        except Exception as e:
-            return Response({'error': f'Ошибка при экспорте: {str(e)}'}, status=500)
+        else:
+            fields = [field.name for field in Printer._meta.fields]
+            writer.writerow(fields)
+            return response
 
 class RouterViewSet(viewsets.ModelViewSet):
     queryset = Router.objects.all()
@@ -285,28 +253,20 @@ class RouterViewSet(viewsets.ModelViewSet):
     def export_data(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.data:
-            return Response({'error': 'Нет данных для экспорта'}, status=404)
-        try:
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment; filename=routers.csv'
-            
-            # Создаем CSV writer с правильными настройками
-            writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
-            
-            # Записываем заголовки
-            if serializer.data:
-                headers = list(serializer.data[0].keys())
-                writer.writerow(headers)
-                
-                # Записываем данные
-                for item in serializer.data:
-                    row = [str(item.get(header, '')) for header in headers]
-                    writer.writerow(row)
-            
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=routers.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
             return response
-        except Exception as e:
-            return Response({'error': f'Ошибка при экспорте: {str(e)}'}, status=500)
+        else:
+            fields = [field.name for field in Router._meta.fields]
+            writer.writerow(fields)
+            return response
 
 @api_view(['GET'])
 def check_ip_unique(request):
