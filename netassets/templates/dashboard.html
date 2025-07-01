@@ -3,6 +3,7 @@
 {% block title %}Главная - Управление сетевыми активами{% endblock %}
 
 {% block content %}
+<form style="display:none;">{% csrf_token %}</form>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">
         <i class="fas fa-tachometer-alt me-2"></i>
@@ -104,6 +105,7 @@
 </div>
 
 <!-- Быстрый доступ -->
+<h4 class="mt-4 mb-3">Быстрый доступ</h4>
 <div class="row" id="dashboard-cards-row">
     <!-- Карточки будут добавляться динамически через JS -->
 </div>
@@ -131,7 +133,24 @@
                     </div>
                     <div class="mb-3">
                         <label for="cardIcon" class="form-label">Иконка (FontAwesome)</label>
-                        <input type="text" class="form-control" id="cardIcon" value="fas fa-link">
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="cardIcon" value="fas fa-link">
+                            <span class="input-group-text" id="iconPreview"><i class="fas fa-link"></i></span>
+                        </div>
+                        <div id="iconGallery" class="d-flex flex-wrap gap-2">
+                            <span class="icon-choice" data-icon="fas fa-link"><i class="fas fa-link fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-desktop"><i class="fas fa-desktop fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-print"><i class="fas fa-print fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-hdd"><i class="fas fa-hdd fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-wifi"><i class="fas fa-wifi fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-server"><i class="fas fa-server fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-network-wired"><i class="fas fa-network-wired fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-user"><i class="fas fa-user fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-cogs"><i class="fas fa-cogs fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-database"><i class="fas fa-database fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-globe"><i class="fas fa-globe fa-lg"></i></span>
+                            <span class="icon-choice" data-icon="fas fa-book"><i class="fas fa-book fa-lg"></i></span>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Добавить</button>
                 </form>
@@ -152,23 +171,34 @@ function renderDashboardCards(cards) {
         col.className = 'col-md-4 mb-3 dashboard-card-col';
         col.setAttribute('data-card-id', card.id);
         col.innerHTML = `
-            <div class="card dashboard-card h-100">
+            <div class="card dashboard-card h-100" style="cursor:pointer;">
                 <div class="card-body text-center">
                     <i class="${card.icon} fa-2x mb-2"></i><br>
                     <strong>${card.title}</strong><br>
-                    <a href="${card.url}" class="stretched-link" target="_blank"></a>
                 </div>
-                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-card-btn" title="Удалить">&times;</button>
+                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-card-btn" title="Удалить">&times;</button>
             </div>
         `;
         row.appendChild(col);
     });
     // Drag & drop
     enableCardDragAndDrop();
+    // Клик по карточке для перехода по ссылке
+    document.querySelectorAll('.dashboard-card').forEach(cardDiv => {
+        cardDiv.onclick = function(e) {
+            if (e.target.classList.contains('remove-card-btn')) return;
+            const cardId = cardDiv.closest('.dashboard-card-col').getAttribute('data-card-id');
+            const card = cards.find(c => c.id == cardId);
+            if (card && card.url) {
+                window.location.href = card.url;
+            }
+        };
+    });
     // Удаление карточки
     document.querySelectorAll('.remove-card-btn').forEach(btn => {
         btn.onclick = function(e) {
             e.stopPropagation();
+            e.preventDefault();
             const cardId = btn.closest('.dashboard-card-col').getAttribute('data-card-id');
             fetch(`/dashboard/cards/${cardId}/delete/`, {method: 'POST', headers: {'X-CSRFToken': getCSRFToken()}})
                 .then(() => loadDashboardCards());
@@ -240,5 +270,37 @@ document.getElementById('addCardForm').onsubmit = function(e) {
     });
 };
 document.addEventListener('DOMContentLoaded', loadDashboardCards);
+// --- Icon gallery logic ---
+const iconInput = document.getElementById('cardIcon');
+const iconPreview = document.getElementById('iconPreview').firstElementChild;
+const iconChoices = document.querySelectorAll('#iconGallery .icon-choice');
+function updateIconPreview() {
+    iconPreview.className = iconInput.value + ' fa-lg';
+}
+iconInput.addEventListener('input', function() {
+    updateIconPreview();
+    iconChoices.forEach(ic => ic.classList.remove('border-primary', 'border', 'shadow'));
+});
+iconChoices.forEach(ic => {
+    ic.addEventListener('click', function() {
+        iconInput.value = ic.getAttribute('data-icon');
+        updateIconPreview();
+        iconChoices.forEach(i2 => i2.classList.remove('border-primary', 'border', 'shadow'));
+        ic.classList.add('border-primary', 'border', 'shadow');
+    });
+});
+updateIconPreview();
 </script>
+<style>
+#iconGallery .icon-choice {
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: box-shadow 0.2s, border 0.2s;
+}
+#iconGallery .icon-choice.border-primary {
+    box-shadow: 0 0 0 2px #0d6efd;
+    border: 2px solid #0d6efd;
+}
+</style>
 {% endblock %} 
