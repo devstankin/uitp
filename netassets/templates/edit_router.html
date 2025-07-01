@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактировать роутер - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-edit me-2"></i>
+        Редактировать роутер
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'routers_table' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="ip_address" class="form-label">IP-адрес *</label>
+                    <input type="text" class="form-control" id="ip_address" name="ip_address" value="{{ router.ip_address }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="status" class="form-label">Статус *</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="">Выберите статус</option>
+                        <option value="available" {% if router.status == 'available' %}selected{% endif %}>Доступен</option>
+                        <option value="unavailable" {% if router.status == 'unavailable' %}selected{% endif %}>Недоступен</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="remote_access" class="form-label">Удалённый доступ *</label>
+                    <select class="form-select" id="remote_access" name="remote_access" required>
+                        <option value="">Выберите</option>
+                        <option value="yes" {% if router.remote_access == 'yes' %}selected{% endif %}>Да</option>
+                        <option value="no" {% if router.remote_access == 'no' %}selected{% endif %}>Нет</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="room" class="form-label">Кабинет *</label>
+                    <input type="text" class="form-control" id="room" name="room" value="{{ router.room }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="device_type" class="form-label">Тип устройства *</label>
+                    <input type="text" class="form-control" id="device_type" name="device_type" value="{{ router.device_type }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="model" class="form-label">Модель *</label>
+                    <input type="text" class="form-control" id="model" name="model" value="{{ router.model }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="admin_login" class="form-label">Логин администратора *</label>
+                    <input type="text" class="form-control" id="admin_login" name="admin_login" value="{{ router.admin_login }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="admin_password" class="form-label">Пароль администратора *</label>
+                    <input type="password" class="form-control" id="admin_password" name="admin_password" value="{{ router.admin_password }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="wifi_ssid" class="form-label">Wi-Fi SSID</label>
+                    <input type="text" class="form-control" id="wifi_ssid" name="wifi_ssid" value="{{ router.wifi_ssid }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="wifi_password" class="form-label">Пароль Wi-Fi</label>
+                    <input type="text" class="form-control" id="wifi_password" name="wifi_password" value="{{ router.wifi_password }}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="subnet" class="form-label">Подсеть *</label>
+                    <input type="text" class="form-control" id="subnet" name="subnet" value="{{ router.subnet }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="notes" class="form-label">Примечания</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3">{{ router.notes }}</textarea>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'routers_table' %}" class="btn btn-secondary me-2">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

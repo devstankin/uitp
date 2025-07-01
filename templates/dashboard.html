@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-tachometer-alt me-2"></i>
+        Панель управления
+    </h1>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Компьютеры
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ computers_count|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-desktop fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Принтеры
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ printers_count|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-print fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Коммутаторы
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ switches_count|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-hdd fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Маршрутизаторы
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ routers_count|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-wifi fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрый доступ -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Быстрый доступ
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'computers_table' %}" class="btn btn-outline-primary w-100 p-3">
+                            <i class="fas fa-desktop fa-2x mb-2"></i>
+                            <br>
+                            <strong>Компьютеры</strong>
+                            <br>
+                            <small class="text-muted">Управление компьютерами</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'printers_table' %}" class="btn btn-outline-success w-100 p-3">
+                            <i class="fas fa-print fa-2x mb-2"></i>
+                            <br>
+                            <strong>Принтеры</strong>
+                            <br>
+                            <small class="text-muted">Управление принтерами</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'switches_table' %}" class="btn btn-outline-info w-100 p-3">
+                            <i class="fas fa-hdd fa-2x mb-2"></i>
+                            <br>
+                            <strong>Коммутаторы</strong>
+                            <br>
+                            <small class="text-muted">Управление коммутаторами</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'routers_table' %}" class="btn btn-outline-warning w-100 p-3">
+                            <i class="fas fa-wifi fa-2x mb-2"></i>
+                            <br>
+                            <strong>Маршрутизаторы</strong>
+                            <br>
+                            <small class="text-muted">Управление маршрутизаторами</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'network_devices_table' %}" class="btn btn-outline-secondary w-100 p-3">
+                            <i class="fas fa-server fa-2x mb-2"></i>
+                            <br>
+                            <strong>Сетевые устройства</strong>
+                            <br>
+                            <small class="text-muted">Управление сетевыми устройствами</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

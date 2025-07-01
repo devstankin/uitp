@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактировать компьютер - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-edit me-2"></i>
+        Редактировать компьютер
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'computers_table' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="pc_type" class="form-label">Тип ПК *</label>
+                    <input type="text" class="form-control" id="pc_type" name="pc_type" value="{{ computer.pc_type }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="department" class="form-label">Подразделение *</label>
+                    <input type="text" class="form-control" id="department" name="department" value="{{ computer.department }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="responsible" class="form-label">Материально ответственный *</label>
+                    <input type="text" class="form-control" id="responsible" name="responsible" value="{{ computer.responsible }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="room" class="form-label">Кабинет *</label>
+                    <input type="text" class="form-control" id="room" name="room" value="{{ computer.room }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="pc_name" class="form-label">Имя ПК *</label>
+                    <input type="text" class="form-control" id="pc_name" name="pc_name" value="{{ computer.pc_name }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="network_address" class="form-label">Сетевой адрес *</label>
+                    <input type="text" class="form-control" id="network_address" name="network_address" value="{{ computer.network_address }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="inventory_number" class="form-label">Инвентарный номер *</label>
+                    <input type="text" class="form-control" id="inventory_number" name="inventory_number" value="{{ computer.inventory_number }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="serial_number" class="form-label">Серийный номер *</label>
+                    <input type="text" class="form-control" id="serial_number" name="serial_number" value="{{ computer.serial_number }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="barcode" class="form-label">Штрихкод *</label>
+                    <input type="text" class="form-control" id="barcode" name="barcode" value="{{ computer.barcode }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="status" class="form-label">Статус *</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="">Выберите статус</option>
+                        <option value="on_site" {% if computer.status == 'on_site' %}selected{% endif %}>На месте</option>
+                        <option value="repair" {% if computer.status == 'repair' %}selected{% endif %}>В ремонте</option>
+                        <option value="setup" {% if computer.status == 'setup' %}selected{% endif %}>На настройке</option>
+                        <option value="repaired" {% if computer.status == 'repaired' %}selected{% endif %}>Отремонтирован</option>
+                        <option value="decommissioned" {% if computer.status == 'decommissioned' %}selected{% endif %}>Списан</option>
+                        <option value="configured" {% if computer.status == 'configured' %}selected{% endif %}>Настроен</option>
+                        <option value="lost" {% if computer.status == 'lost' %}selected{% endif %}>Утерян</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="finish_date" class="form-label">Дата завершения работ</label>
+                    <input type="date" class="form-control" id="finish_date" name="finish_date" 
+                           value="{% if computer.finish_date %}{{ computer.finish_date|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="seal" class="form-label">Пломба</label>
+                    <input type="text" class="form-control" id="seal" name="seal" value="{{ computer.seal }}">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'computers_table' %}" class="btn btn-secondary me-2">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

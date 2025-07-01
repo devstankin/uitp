@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}Роутеры - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-wifi me-2"></i>
+        Роутеры
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportData()">
+                <i class="fas fa-download me-1"></i> Экспорт CSV
+            </button>
+        </div>
+        <a href="{% url 'assets:create_router' %}" class="btn btn-sm btn-success me-2">
+            <i class="fas fa-plus me-1"></i> Добавить
+        </a>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="fas fa-upload me-1"></i> Импорт
+        </button>
+    </div>
+</div>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form class="row g-2" id="filterForm" onsubmit="return false;">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="searchInput" placeholder="Поиск по всем полям...">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Статус (все)</option>
+                    <option value="available">Доступен</option>
+                    <option value="unavailable">Недоступен</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="remoteFilter">
+                    <option value="">Удалённый доступ (все)</option>
+                    <option value="yes">Да</option>
+                    <option value="no">Нет</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" id="roomFilter" placeholder="Кабинет">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" id="modelFilter" placeholder="Модель">
+            </div>
+            <div class="col-md-1 d-grid">
+                <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">Сброс</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="routersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>IP-адрес</th>
+                        <th>Статус</th>
+                        <th>Удалённый доступ</th>
+                        <th>Кабинет</th>
+                        <th>Тип устройства</th>
+                        <th>Модель</th>
+                        <th>Логин администратора</th>
+                        <th>Пароль администратора</th>
+                        <th>Wi-Fi SSID</th>
+                        <th>Wi-Fi пароль</th>
+                        <th>Подсеть</th>
+                        <th>Примечания</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for router in routers %}
+                    <tr>
+                        <td>{{ router.id }}</td>
+                        <td>{{ router.ip_address }}</td>
+                        <td>
+                            <span class="badge bg-{% if router.status == 'available' %}success{% else %}danger{% endif %}">
+                                {{ router.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ router.get_remote_access_display }}</td>
+                        <td>{{ router.room }}</td>
+                        <td>{{ router.device_type }}</td>
+                        <td>{{ router.model }}</td>
+                        <td>{{ router.admin_login }}</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="password-text border-0" data-password="{{ router.admin_password }}">••••••••</span>
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>{{ router.wifi_ssid|default:"-" }}</td>
+                        <td>
+                            {% if router.wifi_password %}
+                            <div class="input-group input-group-sm">
+                                <span class="password-text border-0" data-password="{{ router.wifi_password }}">••••••••</span>
+                                <button class="btn btn-outline-secondary btn-sm toggle-password" type="button">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ router.subnet }}</td>
+                        <td>{{ router.notes|default:"-" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'assets:edit_router' router.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'assets:delete_router' router.id %}" class="btn btn-outline-danger" 
+                                   onclick="return confirm('Вы уверены, что хотите удалить этот роутер?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="14" class="text-center text-muted">
+                            <i class="fas fa-inbox fa-2x mb-2"></i>
+                            <br>
+                            Нет данных для отображения
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для импорта -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>
+                    Импорт данных
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Выберите файл (CSV)</label>
+                        <input type="file" class="form-control" id="importFile" name="file" accept=".csv" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Поддерживаемый формат: CSV
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i>
+                        Импортировать
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function () {
+        const passwordSpan = this.previousElementSibling;
+        const password = passwordSpan.getAttribute('data-password');
+        const icon = this.querySelector('i');
+
+        if (passwordSpan.textContent === '••••••••') {
+            passwordSpan.textContent = password;
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordSpan.textContent = '••••••••';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+});
+
+function exportData() {
+    window.location.href = `/api/routers/export_data/`;
+}
+
+document.getElementById('importForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData();
+    const fileInput = document.getElementById('importFile');
+    formData.append('file', fileInput.files[0]);
+    
+    fetch('/api/routers/import_data/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showImportResultModal(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showImportResultModal({ error: 'Произошла ошибка при отправке файла.' });
+    });
+});
+
+// Фильтрация и поиск
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const remoteFilter = document.getElementById('remoteFilter');
+const roomFilter = document.getElementById('roomFilter');
+const modelFilter = document.getElementById('modelFilter');
+const table = document.getElementById('routersTable');
+
+function filterTable() {
+    const search = searchInput.value.toLowerCase();
+    const status = statusFilter.value;
+    const remote = remoteFilter.value;
+    const room = roomFilter.value.toLowerCase();
+    const model = modelFilter.value.toLowerCase();
+    for (const row of table.tBodies[0].rows) {
+        let text = row.innerText.toLowerCase();
+        let show = true;
+        if (search && !text.includes(search)) show = false;
+        if (status && !row.cells[2].innerText.toLowerCase().includes(status)) show = false;
+        if (remote && !row.cells[3].innerText.toLowerCase().includes(remote === 'yes' ? 'да' : 'нет')) show = false;
+        if (room && !row.cells[4].innerText.toLowerCase().includes(room)) show = false;
+        if (model && !row.cells[6].innerText.toLowerCase().includes(model)) show = false;
+        row.style.display = show ? '' : 'none';
+    }
+}
+
+searchInput.addEventListener('input', filterTable);
+statusFilter.addEventListener('change', filterTable);
+remoteFilter.addEventListener('change', filterTable);
+roomFilter.addEventListener('input', filterTable);
+modelFilter.addEventListener('input', filterTable);
+
+function clearFilters() {
+    searchInput.value = '';
+    statusFilter.value = '';
+    remoteFilter.value = '';
+    roomFilter.value = '';
+    modelFilter.value = '';
+    filterTable();
+}
+</script>
+{% endblock %} 

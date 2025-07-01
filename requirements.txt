@@ -1,0 +1,9 @@
+Django>=4.2
+psycopg2-binary
+djangorestframework
+django-auth-ldap
+django-cors-headers
+django-simple-history
+pandas
+xlsxwriter
+openpyxl 

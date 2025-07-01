@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}{% if record %}Редактировать запись{% else %}Добавить запись{% endif %} в {{ entity.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-plus-circle me-2"></i>
+        {% if record %}Редактировать запись{% else %}Добавить запись{% endif %} в: <strong>{{ entity.name }}</strong>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assets:entity_record_list' entity_slug=entity.slug %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% for field in fields %}
+                    <div class="mb-3">
+                        <label for="field_{{ field.name }}" class="form-label">{{ field.name }}{% if field.is_required %} <span class="text-danger">*</span>{% endif %}</label>
+                        
+                        {% if field.field_type == 'textarea' %}
+                        <textarea class="form-control" id="field_{{ field.name }}" name="{{ field.name }}" rows="3" {% if field.is_required %}required{% endif %}>{{ data|get_item:field.name|default_if_none:'' }}</textarea>
+                        {% elif field.field_type == 'date' %}
+                        <input type="date" class="form-control" id="field_{{ field.name }}" name="{{ field.name }}" value="{{ data|get_item:field.name|default_if_none:'' }}" {% if field.is_required %}required{% endif %}>
+                        {% elif field.field_type == 'number' %}
+                        <input type="number" class="form-control" id="field_{{ field.name }}" name="{{ field.name }}" value="{{ data|get_item:field.name|default_if_none:'' }}" {% if field.is_required %}required{% endif %}>
+                        {% else %}
+                        <input type="text" class="form-control" id="field_{{ field.name }}" name="{{ field.name }}" value="{{ data|get_item:field.name|default_if_none:'' }}" {% if field.is_required %}required{% endif %}>
+                        {% endif %}
+                        
+                        {% if errors|get_item:field.name %}
+                        <div class="invalid-feedback d-block">
+                            {{ errors|get_item:field.name }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

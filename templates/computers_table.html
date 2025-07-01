@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Компьютеры - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-desktop me-2"></i>
+        Компьютеры
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportData()">
+                <i class="fas fa-download me-1"></i> Экспорт CSV
+            </button>
+        </div>
+        <a href="{% url 'create_computer' %}" class="btn btn-sm btn-success me-2">
+            <i class="fas fa-plus me-1"></i> Добавить
+        </a>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="fas fa-upload me-1"></i> Импорт
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>IP адрес</th>
+                        <th>MAC адрес</th>
+                        <th>Модель</th>
+                        <th>Серийный номер</th>
+                        <th>Местоположение</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for computer in computers %}
+                    <tr>
+                        <td>{{ computer.id }}</td>
+                        <td>{{ computer.name }}</td>
+                        <td>{{ computer.ip_address }}</td>
+                        <td>{{ computer.mac_address }}</td>
+                        <td>{{ computer.model }}</td>
+                        <td>{{ computer.serial_number }}</td>
+                        <td>{{ computer.location }}</td>
+                        <td>
+                            <span class="badge bg-{% if computer.status == 'active' %}success{% elif computer.status == 'inactive' %}danger{% else %}warning{% endif %}">
+                                {{ computer.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editComputer({{ computer.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteComputer({{ computer.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            <i class="fas fa-inbox fa-2x mb-2"></i>
+                            <br>
+                            Нет данных для отображения
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal для импорта -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>
+                    Импорт данных
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Выберите файл (CSV)</label>
+                        <input type="file" class="form-control" id="importFile" name="file" accept=".csv" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Поддерживаемый формат: CSV
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i>
+                        Импортировать
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportData() {
+    window.location.href = `/api/computers/export_data/`;
+}
+
+document.getElementById('importForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    const fileInput = document.getElementById('importFile');
+    formData.append('file', fileInput.files[0]);
+    
+    fetch('/api/computers/import_data/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert('Данные успешно импортированы!');
+            location.reload();
+        } else {
+            alert('Ошибка при импорте: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Ошибка при импорте: ' + error);
+    });
+});
+
+function editComputer(id) {
+    // Здесь можно добавить логику редактирования
+    alert('Редактирование компьютера с ID: ' + id);
+}
+
+function deleteComputer(id) {
+    if (confirm('Вы уверены, что хотите удалить этот компьютер?')) {
+        fetch(`/api/computers/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении');
+            }
+        });
+    }
+}
+</script>
+{% endblock %} 

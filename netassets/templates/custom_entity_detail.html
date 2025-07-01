@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Настройка полей для {{ entity.name }} - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-edit me-2"></i>
+        Настройка полей для: <strong>{{ entity.name }}</strong>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assets:custom_entity_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>
+            Назад к списку сущностей
+        </a>
+        <a href="{% url 'assets:entity_record_list' entity_slug=entity.slug %}" class="btn btn-sm btn-primary ms-2">
+            <i class="fas fa-list me-1"></i>
+            Просмотр записей
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Добавить новое поле</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'assets:custom_entity_detail' entity_slug=entity.slug %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="fieldName" class="form-label">Название поля</label>
+                        <input type="text" class="form-control" id="fieldName" name="name" required placeholder="Например, Серийный номер">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fieldType" class="form-label">Тип поля</label>
+                        <select class="form-select" id="fieldType" name="field_type" required>
+                            <option value="" disabled selected>Выберите тип</option>
+                            {% for type_val, type_name in field_types %}
+                            <option value="{{ type_val }}">{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isRequired" name="is_required" checked>
+                        <label class="form-check-label" for="isRequired">
+                            Обязательное для заполнения
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-1"></i>
+                        Добавить поле
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Существующие поля</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название поля</th>
+                                <th>Тип</th>
+                                <th>Обязательное</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for field in entity.fields.all %}
+                            <tr>
+                                <td>{{ field.name }}</td>
+                                <td>{{ field.get_field_type_display }}</td>
+                                <td>
+                                    {% if field.is_required %}
+                                        <span class="badge bg-success">Да</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Нет</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    <p class="mb-1"><i class="fas fa-inbox fa-2x"></i></p>
+                                    <p>Для этой сущности еще не добавлено ни одного поля.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

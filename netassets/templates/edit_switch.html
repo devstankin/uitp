@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактировать коммутатор - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-edit me-2"></i>
+        Редактировать коммутатор
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'switches_table' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="ip_range" class="form-label">IP-диапазон *</label>
+                    <input type="text" class="form-control" id="ip_range" name="ip_range" value="{{ switch.ip_range }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="subnet_mask" class="form-label">Маска подсети *</label>
+                    <input type="text" class="form-control" id="subnet_mask" name="subnet_mask" value="{{ switch.subnet_mask }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="hostname" class="form-label">Имя хоста *</label>
+                    <input type="text" class="form-control" id="hostname" name="hostname" value="{{ switch.hostname }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="model" class="form-label">Модель *</label>
+                    <input type="text" class="form-control" id="model" name="model" value="{{ switch.model }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="node_location" class="form-label">Расположение узла *</label>
+                    <input type="text" class="form-control" id="node_location" name="node_location" value="{{ switch.node_location }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="port" class="form-label">Порт *</label>
+                    <input type="text" class="form-control" id="port" name="port" value="{{ switch.port }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="vlan" class="form-label">VLAN *</label>
+                    <input type="text" class="form-control" id="vlan" name="vlan" value="{{ switch.vlan }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="room" class="form-label">Кабинет *</label>
+                    <input type="text" class="form-control" id="room" name="room" value="{{ switch.room }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="department" class="form-label">Подразделение *</label>
+                    <input type="text" class="form-control" id="department" name="department" value="{{ switch.department }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="status" class="form-label">Статус *</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="">Выберите статус</option>
+                        <option value="used" {% if switch.status == 'used' %}selected{% endif %}>Используется</option>
+                        <option value="free" {% if switch.status == 'free' %}selected{% endif %}>Свободна</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'switches_table' %}" class="btn btn-secondary me-2">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
