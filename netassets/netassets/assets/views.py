@@ -22,6 +22,7 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from .forms import ComputerForm, PrinterForm, RouterForm, SwitchForm, NetworkDeviceForm, CustomEntityForm, CustomFieldForm, EntityRecordForm
+from django_filters.rest_framework import DjangoFilterBackend
 
 class NetworkDeviceViewSet(viewsets.ModelViewSet):
     queryset = NetworkDevice.objects.all()
@@ -223,9 +224,10 @@ class RouterViewSet(viewsets.ModelViewSet):
     queryset = Router.objects.all()
     serializer_class = RouterSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     search_fields = '__all__'
     ordering_fields = '__all__'
+    filterset_fields = ['status']
 
     @action(detail=False, methods=['post'], parser_classes=[MultiPartParser], permission_classes=[AllowAny])
     def import_data(self, request):

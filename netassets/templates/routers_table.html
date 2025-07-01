@@ -98,6 +98,7 @@
                             <span class="badge bg-{% if router.status == 'available' %}success{% else %}danger{% endif %}">
                                 {{ router.get_status_display }}
                             </span>
+                            <span class="d-none status-code">{{ router.status }}</span>
                         </td>
                         <td>{{ router.get_remote_access_display }}</td>
                         <td>{{ router.room }}</td>
@@ -255,7 +256,10 @@ function filterTable() {
         let text = row.innerText.toLowerCase();
         let show = true;
         if (search && !text.includes(search)) show = false;
-        if (status && !row.cells[2].innerText.toLowerCase().includes(status)) show = false;
+        if (status) {
+            const code = row.querySelector('.status-code').textContent;
+            if (code !== status) show = false;
+        }
         if (remote && !row.cells[3].innerText.toLowerCase().includes(remote === 'yes' ? 'да' : 'нет')) show = false;
         if (room && !row.cells[4].innerText.toLowerCase().includes(room)) show = false;
         if (model && !row.cells[6].innerText.toLowerCase().includes(model)) show = false;

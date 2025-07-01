@@ -7,3 +7,4 @@ django-simple-history
 pandas
 xlsxwriter
 openpyxl 
+django-filter
