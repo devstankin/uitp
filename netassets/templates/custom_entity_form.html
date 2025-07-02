@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Создать сущность - Управление сетевыми активами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-plus me-2"></i>
+        Создать сущность
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assets:custom_entity_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад к списку
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h5>Ошибки валидации:</h5>
+                    <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name" class="form-label">Название сущности *</label>
+                    <input type="text" class="form-control" id="name" name="name" required value="{{ form.name.value|default:'' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="slug" class="form-label">Slug (URL) *</label>
+                    <input type="text" class="form-control" id="slug" name="slug" required value="{{ form.slug.value|default:'' }}" placeholder="Автоматически генерируется из названия">
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'assets:custom_entity_list' %}" class="btn btn-secondary me-2">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Создать
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

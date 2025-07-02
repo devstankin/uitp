@@ -6,6 +6,7 @@ from .validators import (
     validate_inventory_number, validate_serial_number, validate_barcode,
     validate_vlan, validate_port
 )
+from django.utils.text import slugify
 
 class ComputerForm(forms.ModelForm):
     class Meta:
@@ -141,10 +142,11 @@ class CustomEntityForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
-        
+        slug = cleaned_data.get('slug')
+        if name and not slug:
+            cleaned_data['slug'] = slugify(name)
         if name and len(name) < 2:
             raise ValidationError('Название сущности должно содержать минимум 2 символа')
-        
         return cleaned_data
 
 class CustomFieldForm(forms.ModelForm):
