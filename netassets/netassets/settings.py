@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from django_auth_ldap.config import LDAPSearch
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -66,19 +65,8 @@ DATABASES = {
     }
 }
 
-# LDAP (Active Directory)
-# AUTH_LDAP_SERVER_URI = "ldap://ad.example.com"
-# AUTH_LDAP_BIND_DN = "CN=ldap_user,CN=Users,DC=example,DC=com"
-# AUTH_LDAP_BIND_PASSWORD = "your_ldap_password"
-# AUTH_LDAP_USER_SEARCH = LDAPSearch(
-#     "OU=Users,DC=example,DC=com",
-#     2,  # SCOPE_SUBTREE
-#     "(sAMAccountName=%(user)s)",
-# )
-
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    # 'django_auth_ldap.backend.LDAPBackend',
 ]
 
 LANGUAGE_CODE = 'ru-ru'
