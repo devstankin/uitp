@@ -35,10 +35,18 @@
                 <div class="col-md-6 mb-3">
                     <label for="name" class="form-label">Название сущности *</label>
                     <input type="text" class="form-control" id="name" name="name" required value="{{ form.name.value|default:'' }}">
+                    {% if form.name.errors %}
+                        <div class="text-danger small">{{ form.name.errors|join:', ' }}</div>
+                    {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="slug" class="form-label">Slug (URL) *</label>
+                    <label for="slug" class="form-label">
+                        Slug (URL) * <span class="text-muted small"> (автоматически генерируется из названия, можно изменить)</span>
+                    </label>
                     <input type="text" class="form-control" id="slug" name="slug" required value="{{ form.slug.value|default:'' }}" placeholder="Автоматически генерируется из названия">
+                    {% if form.slug.errors %}
+                        <div class="text-danger small">{{ form.slug.errors|join:', ' }}</div>
+                    {% endif %}
                 </div>
             </div>
             <div class="d-flex justify-content-end">
@@ -50,4 +58,29 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function slugify(str) {
+        return str
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\u0400-\u04FF\s-]/g, '') // только буквы, цифры, пробелы, тире
+          .replace(/\s+/g, '-')                        // пробелы на тире
+          .replace(/-+/g, '-')                          // последовательные тире — одно
+          .replace(/^-+|-+$/g, '');                     // удалить тире с краёв
+    }
+    var nameInput = document.getElementById('name');
+    var slugInput = document.getElementById('slug');
+    var userEdited = false;
+    slugInput.addEventListener('input', function() { userEdited = true });
+    nameInput.addEventListener('input', function() {
+        if (!userEdited || slugInput.value === '' || slugInput.value === slugify(slugInput.value)) {
+            slugInput.value = slugify(nameInput.value);
+        }
+    });
+});
+</script>
 {% endblock %} 

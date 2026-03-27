@@ -19,60 +19,85 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
+            {% if form and form.errors %}
+                <div class="alert alert-danger">
+                    <h5>Ошибки валидации:</h5>
+                    <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="code" class="form-label">Код *</label>
-                    <input type="text" class="form-control" id="code" name="code" required>
+                    <input type="text" class="form-control" id="code" name="code" required value="{{ form.data.code|default:'' }}">
+                    {% if form.code.errors %}<div class="text-danger small">{{ form.code.errors|join:', ' }}</div>{% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="ip_address" class="form-label">IP-адрес *</label>
-                    <input type="text" class="form-control" id="ip_address" name="ip_address" required>
+                    <input type="text" class="form-control" id="ip_address" name="ip_address" required value="{{ form.data.ip_address|default:'' }}">
+                    {% if form.ip_address.errors %}<div class="text-danger small">{{ form.ip_address.errors|join:', ' }}</div>{% endif %}
                 </div>
             </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="subnet" class="form-label">Подсеть *</label>
-                    <input type="text" class="form-control" id="subnet" name="subnet" required>
+                    <input type="text" class="form-control" id="subnet" name="subnet" required value="{{ form.data.subnet|default:'' }}">
+                    {% if form.subnet.errors %}<div class="text-danger small">{{ form.subnet.errors|join:', ' }}</div>{% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="network_type" class="form-label">Тип сети *</label>
                     <select class="form-select" id="network_type" name="network_type" required>
                         <option value="">Выберите тип сети</option>
-                        <option value="Static">Статический</option>
-                        <option value="DHCP">DHCP</option>
+                        <option value="Static" {% if form.data.network_type == 'Static' %}selected{% endif %}>Статический</option>
+                        <option value="DHCP" {% if form.data.network_type == 'DHCP' %}selected{% endif %}>DHCP</option>
                     </select>
+                    {% if form.network_type.errors %}<div class="text-danger small">{{ form.network_type.errors|join:', ' }}</div>{% endif %}
                 </div>
             </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="hostname" class="form-label">Имя хоста *</label>
-                    <input type="text" class="form-control" id="hostname" name="hostname" required>
+                    <input type="text" class="form-control" id="hostname" name="hostname" required value="{{ form.data.hostname|default:'' }}">
+                    {% if form.hostname.errors %}<div class="text-danger small">{{ form.hostname.errors|join:', ' }}</div>{% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="device_type" class="form-label">Тип устройства *</label>
                     <select class="form-select" id="device_type" name="device_type" required>
                         <option value="">Выберите тип устройства</option>
-                        <option value="printer">Принтер</option>
-                        <option value="computer">Компьютер</option>
-                        <option value="router">Роутер</option>
-                        <option value="switch">Коммутатор</option>
-                        <option value="camera">Камера</option>
-                        <option value="panel">Панель</option>
-                        <option value="server">Сервер</option>
+                        <option value="printer" {% if form.data.device_type == 'printer' %}selected{% endif %}>Принтер</option>
+                        <option value="computer" {% if form.data.device_type == 'computer' %}selected{% endif %}>Компьютер</option>
+                        <option value="router" {% if form.data.device_type == 'router' %}selected{% endif %}>Роутер</option>
+                        <option value="switch" {% if form.data.device_type == 'switch' %}selected{% endif %}>Коммутатор</option>
+                        <option value="camera" {% if form.data.device_type == 'camera' %}selected{% endif %}>Камера</option>
+                        <option value="panel" {% if form.data.device_type == 'panel' %}selected{% endif %}>Панель</option>
+                        <option value="server" {% if form.data.device_type == 'server' %}selected{% endif %}>Сервер</option>
                     </select>
+                    {% if form.device_type.errors %}<div class="text-danger small">{{ form.device_type.errors|join:', ' }}</div>{% endif %}
                 </div>
             </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="location" class="form-label">Местоположение *</label>
-                    <input type="text" class="form-control" id="location" name="location" required>
+                    <input type="text" class="form-control" id="location" name="location" required value="{{ form.data.location|default:'' }}">
+                    {% if form.location.errors %}<div class="text-danger small">{{ form.location.errors|join:', ' }}</div>{% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="department" class="form-label">Подразделение *</label>
-                    <input type="text" class="form-control" id="department" name="department" required>
+                    <input type="text" class="form-control" id="department" name="department" required value="{{ form.data.department|default:'' }}">
+                    {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors|join:', ' }}</div>{% endif %}
                 </div>
             </div>
             

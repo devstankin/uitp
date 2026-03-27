@@ -88,7 +88,7 @@
                 </thead>
                 <tbody>
                     {% for switch in switches %}
-                    <tr>
+                    <tr data-status="{{ switch.status }}">
                         <td>{{ switch.id }}</td>
                         <td>{{ switch.ip_range }}</td>
                         <td>{{ switch.subnet_mask }}</td>
@@ -209,14 +209,15 @@ const table = document.getElementById('switchesTable');
 
 function filterTable() {
     const search = searchInput.value.toLowerCase();
-    const status = statusFilter.value;
+    const selectedStatus = statusFilter.value; // used/free
     const room = roomFilter.value.toLowerCase();
     const model = modelFilter.value.toLowerCase();
     for (const row of table.tBodies[0].rows) {
         let text = row.innerText.toLowerCase();
         let show = true;
+        const rowStatus = row.getAttribute('data-status');
         if (search && !text.includes(search)) show = false;
-        if (status && !row.cells[10].innerText.toLowerCase().includes(status)) show = false;
+        if (selectedStatus && rowStatus !== selectedStatus) show = false;
         if (room && !row.cells[8].innerText.toLowerCase().includes(room)) show = false;
         if (model && !row.cells[4].innerText.toLowerCase().includes(model)) show = false;
         row.style.display = show ? '' : 'none';

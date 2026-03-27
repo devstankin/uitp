@@ -23,11 +23,14 @@
                 <h5 class="mb-0">Создать новую сущность</h5>
             </div>
             <div class="card-body">
+                {% if message %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endif %}
                 <form method="POST" action="{% url 'assets:custom_entity_list' %}">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="entityName" class="form-label">Название сущности</label>
-                        <input type="text" class="form-control" id="entityName" name="name" required placeholder="Например, Проекторы">
+                        <input type="text" class="form-control" id="entityName" name="name" required placeholder="Например, Проекторы" value="{{ form.data.name|default:'' }}">
                         <div class="form-text">Используйте уникальное, описательное имя.</div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
@@ -93,4 +96,27 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function slugify(str) {
+        return str
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\u0400-\u04FF\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '');
+    }
+    const nameInput = document.getElementById('entityName');
+    const slugInput = document.getElementById('entitySlug');
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            slugInput.value = slugify(nameInput.value);
+        });
+    }
+});
+</script>
 {% endblock %} 

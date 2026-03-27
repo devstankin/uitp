@@ -95,7 +95,7 @@
                 </thead>
                 <tbody>
                     {% for computer in computers %}
-                    <tr>
+                    <tr data-status="{{ computer.status }}">
                         <td>{{ computer.id }}</td>
                         <td>{{ computer.pc_type }}</td>
                         <td>{{ computer.department }}</td>
@@ -218,14 +218,15 @@ const table = document.getElementById('computersTable');
 
 function filterTable() {
     const search = searchInput.value.toLowerCase();
-    const status = statusFilter.value;
+    const selectedStatus = statusFilter.value; // код статуса из select
     const room = roomFilter.value.toLowerCase();
     const department = departmentFilter.value.toLowerCase();
     for (const row of table.tBodies[0].rows) {
         let text = row.innerText.toLowerCase();
         let show = true;
+        const rowStatus = row.getAttribute('data-status');
         if (search && !text.includes(search)) show = false;
-        if (status && !row.cells[10].innerText.toLowerCase().includes(status)) show = false;
+        if (selectedStatus && rowStatus !== selectedStatus) show = false;
         if (room && !row.cells[4].innerText.toLowerCase().includes(room)) show = false;
         if (department && !row.cells[2].innerText.toLowerCase().includes(department)) show = false;
         row.style.display = show ? '' : 'none';

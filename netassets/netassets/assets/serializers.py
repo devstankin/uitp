@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NetworkDevice, Switch, Computer, Printer, Router
+from .models import NetworkDevice, Switch, Computer, Printer, Router, CustomEntity
 
 class NetworkDeviceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,4 +24,9 @@ class PrinterSerializer(serializers.ModelSerializer):
 class RouterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Router
+        fields = '__all__'
+
+class CustomEntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomEntity
         fields = '__all__' 

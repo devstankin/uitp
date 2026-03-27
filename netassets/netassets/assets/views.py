@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters
 from .models import NetworkDevice, Switch, Computer, Printer, Router, CustomEntity, CustomField, EntityRecord, UserPermission, UserDashboardCard
 from .serializers import (
-    NetworkDeviceSerializer, SwitchSerializer, ComputerSerializer, PrinterSerializer, RouterSerializer
+    NetworkDeviceSerializer, SwitchSerializer, ComputerSerializer, PrinterSerializer, RouterSerializer, CustomEntitySerializer
 )
 from .permissions import IsAdminOrReadOnly, AllowAny
 from rest_framework.decorators import api_view, action, parser_classes
@@ -269,6 +269,55 @@ class RouterViewSet(viewsets.ModelViewSet):
             return response
         else:
             fields = [field.name for field in Router._meta.fields]
+            writer.writerow(fields)
+            return response
+
+class CustomEntityViewSet(viewsets.ModelViewSet):
+    queryset = CustomEntity.objects.all()
+    serializer_class = CustomEntitySerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = '__all__'
+    ordering_fields = '__all__'
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser], permission_classes=[AllowAny])
+    def import_data(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'Файл не загружен'}, status=400)
+        ext = file.name.split('.')[-1].lower()
+        errors = []
+        imported = 0
+        if ext == 'csv':
+            decoded = file.read().decode('utf-8')
+            reader = csv.DictReader(io.StringIO(decoded), delimiter=';')
+            for i, row in enumerate(reader, 1):
+                serializer = CustomEntitySerializer(data=row)
+                if serializer.is_valid():
+                    serializer.save()
+                    imported += 1
+                else:
+                    errors.append({'row': i, 'errors': serializer.errors})
+        else:
+            return Response({'error': 'Неподдерживаемый формат файла, только CSV'}, status=400)
+        return Response({'imported': imported, 'errors': errors})
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def export_data(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename=custom_entities.csv'
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
+        if serializer.data:
+            headers = list(serializer.data[0].keys())
+            writer.writerow(headers)
+            for item in serializer.data:
+                row = [str(item.get(header, '')) for header in headers]
+                writer.writerow(row)
+            return response
+        else:
+            fields = [field.name for field in CustomEntity._meta.fields]
             writer.writerow(fields)
             return response
 
@@ -757,7 +806,12 @@ def create_custom_entity(request):
         form = CustomEntityForm(request.POST)
         if form.is_valid():
             try:
-                entity = form.save()
+                entity = form.save(commit=False)
+                if not entity.slug:
+                    from django.utils.text import slugify
+                    entity.slug = slugify(entity.name)
+                entity.full_clean()
+                entity.save()
                 messages.success(request, 'Сущность успешно создана!')
                 return redirect('assets:custom_entity_list')
             except ValidationError as e:
@@ -781,7 +835,12 @@ def edit_custom_entity(request, pk):
         form = CustomEntityForm(request.POST, instance=entity)
         if form.is_valid():
             try:
-                entity = form.save()
+                entity = form.save(commit=False)
+                if not entity.slug:
+                    from django.utils.text import slugify
+                    entity.slug = slugify(entity.name)
+                entity.full_clean()
+                entity.save()
                 messages.success(request, 'Сущность успешно обновлена!')
                 return redirect('assets:custom_entity_list')
             except ValidationError as e:
@@ -1229,9 +1288,27 @@ def user_management(request):
 @user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_view'))
 @login_required
 def custom_entity_list(request):
+    from .forms import CustomEntityForm
+    message = None
+    if request.method == 'POST':
+        form = CustomEntityForm(request.POST)
+        if form.is_valid():
+            entity = form.save(commit=False)
+            from django.utils.text import slugify
+            if not entity.slug:
+                entity.slug = slugify(entity.name)
+            entity.save()
+            message = 'Сущность успешно создана!'
+            form = CustomEntityForm()  # Очистить форму
+        else:
+            message = 'Ошибка: ' + ', '.join([str(e) for e in form.errors.values()])
+    else:
+        form = CustomEntityForm()
     custom_entities = CustomEntity.objects.all()
     return render(request, 'custom_entity_list.html', {
-        'custom_entities': custom_entities
+        'custom_entities': custom_entities,
+        'form': form,
+        'message': message
     })
 
 @user_passes_test(lambda u: has_permission(u, 'custom_entities', 'can_view'))
